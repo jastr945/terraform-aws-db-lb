@@ -12,6 +12,5 @@ variable "db_password" {
 }
 
 variable "deploy_lb" {
-  type = bool
   description = "Conditional deployment of the load balancer"
 }

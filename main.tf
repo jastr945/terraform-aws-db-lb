@@ -81,7 +81,7 @@ resource "aws_db_instance" "demo" {
 
 // Optional Load Balancer
 resource "aws_lb" "aws_lb" {
-  count              = var.deploy_lb == true ? 1 : 0
+  count              = var.deploy_lb == "Yes" ? 1 : 0
   name               = "${var.db_name}-aws-lb"
   internal           = false
   load_balancer_type = "application"
