@@ -2,13 +2,21 @@ provider "aws" {
   region = "us-east-2"
 }
 
+resource "random_pet" "random" {
+  length = 1
+}
+
+locals {
+  random_id = random_pet.random.id
+}
+
 data "aws_availability_zones" "available" {}
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.1.2"
 
-  name                 = "demo"
+  name                 = "demo-${local.random_id}"
   cidr                 = "10.0.0.0/16"
   azs                  = data.aws_availability_zones.available.names
   public_subnets       = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
@@ -17,7 +25,7 @@ module "vpc" {
 }
 
 resource "aws_db_subnet_group" "demo" {
-  name       = "demo"
+  name       = "demo-${local.random_id}"
   subnet_ids = module.vpc.public_subnets
 
   tags = {
@@ -26,7 +34,7 @@ resource "aws_db_subnet_group" "demo" {
 }
 
 resource "aws_security_group" "rds" {
-  name   = "demo_rds"
+  name   = "demo_rds-${local.random_id}"
   vpc_id = module.vpc.vpc_id
 
   ingress {
@@ -49,7 +57,7 @@ resource "aws_security_group" "rds" {
 }
 
 resource "aws_db_parameter_group" "demo" {
-  name   = "demo"
+  name   = "demo-${local.random_id}"
   family = "postgres14"
 
   parameter {
@@ -60,12 +68,8 @@ resource "aws_db_parameter_group" "demo" {
 
 provider "random" {}
 
-resource "random_pet" "random" {
-  length = 1
-}
-
 resource "aws_db_instance" "demo" {
-  identifier             = "${var.db_name}-${random_pet.random.id}"
+  identifier             = "${var.db_name}-${local.random_id}"
   instance_class         = "db.t3.micro"
   allocated_storage      = 5
   engine                 = "postgres"
@@ -82,7 +86,7 @@ resource "aws_db_instance" "demo" {
 // Optional Load Balancer
 resource "aws_lb" "aws_lb" {
   count              = var.deploy_lb == "Yes" ? 1 : 0
-  name               = "${var.db_name}-aws-lb"
+  name               = "${var.db_name}-aws-lb-${local.random_id}"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.rds.id]
