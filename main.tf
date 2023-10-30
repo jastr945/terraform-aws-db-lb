@@ -85,7 +85,7 @@ resource "aws_lb" "aws_lb" {
   name               = "${var.db_name}-aws-lb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.aws_sg.id]
+  security_groups    = [aws_security_group.rds.id]
   subnets            = module.vpc.public_subnets
 
   enable_deletion_protection = false
